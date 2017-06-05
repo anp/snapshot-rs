@@ -8,6 +8,7 @@ proc-macro = true
 
 [dependencies]
 proc-macro2 = { git = "https://github.com/alexcrichton/proc-macro2.git" }
+quote = { git = 'https://github.com/dtolnay/quote' }
 
 [dependencies.syn]
 git = "https://github.com/dtolnay/syn.git"
