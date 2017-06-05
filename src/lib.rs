@@ -9,10 +9,8 @@ pub use snapshot_proc_macro::*;
 use std::convert::AsRef;
 use std::fmt::Debug;
 use std::path::{Path, PathBuf};
-
-/*
-use std::fmt::Debug;
 use serde::{Deserialize, Serialize};
+
 pub trait Snapable {
     fn check_snapshot(&self, md: Metadata) -> Result<(), ()>;
     fn write_snapshot(&self, md: Metadata) -> Result<(), ()>;
@@ -34,18 +32,10 @@ impl<'de, T> Snapable for T
         unimplemented!();
     }
 }
-*/
-
-
-
 
 #[derive(Debug)]
-pub struct Metadata<'a, P>
-    where P: AsRef<Path>
-{
-    pub test_function: String,
-    pub file: P,
+pub struct Metadata<'a> {
+    pub test_function: &'a str,
+    pub file: &'a str,
     pub module_path: &'a str,
 }
-
-impl<'a, P> Metadata<'a, P> where P: AsRef<Path> {}

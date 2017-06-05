@@ -15,21 +15,35 @@ use syn::*;
 pub fn snapshot(attribute: TokenStream, function: TokenStream) -> TokenStream {
     let src = function.to_string();
     let function = proc_macro2::TokenStream::from(function);
-    let Item { node, .. } = function.into();
-    let ItemFn { ident: outer_fn_name, .. } = match node {
-        ItemKind::Fn(item) => item,
-        _ => panic!("#[snapshot] can only be applied to functions"),
+    let mut inner_fn: Item = function.into();
+
+    let (outer_fn_token, outer_fn_name, inner_fn_name, inner_fn_token) = {
+        let mut fn_item = match inner_fn.node {
+            ItemKind::Fn(ref mut item) => item,
+            _ => panic!("#[snapshot] can only be applied to functions"),
+        };
+
+        // TODO swap the inner and outer fn names
+        let outer_fn_token = fn_item.ident.clone();
+        let outer_fn_name = outer_fn_token.to_string();
+        let inner_fn_name = format!("__snapshot_inner_{}", outer_fn_token);
+        let inner_fn_token = syn::Ident::from(inner_fn_name.clone());
+
+        fn_item.ident = inner_fn_token.clone();
+
+        (outer_fn_token, outer_fn_name, inner_fn_name, inner_fn_token)
     };
 
-    // TODO swap the inner and outer fn names
-    let inner_fn_name = format!("__snapshot_inner_{}", &outer_fn_name.to_string());
-    let inner_fn_token = syn::Ident::from(inner_fn_name.clone());
     let output = quote! {
         #[test]
-        fn #outer_fn_name() {
+        fn #outer_fn_token() {
+            #inner_fn
+
+            use ::snapshot::Snapable;
+
             let file = file!();
             let module_path = module_path!();
-            let test_function = #inner_fn_name;
+            let test_function = #outer_fn_name;
 
             let metadata = ::snapshot::Metadata {
                 file, module_path, test_function,
