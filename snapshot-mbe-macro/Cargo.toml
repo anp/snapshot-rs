@@ -1,6 +1,0 @@
-[package]
-name = "snapshot-mbe-macro"
-version = "0.1.0"
-authors = ["Adam Perry <adam.n.perry@gmail.com>"]
-
-[dependencies]

@@ -6,5 +6,3 @@ authors = ["Adam Perry <adam.n.perry@gmail.com>"]
 [dependencies]
 serde = "^1.0.7"
 snapshot-proc-macro = { path = "snapshot-proc-macro" }
-snapshot-mbe-macro = { path = "snapshot-mbe-macro" }
-

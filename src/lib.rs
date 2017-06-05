@@ -2,11 +2,8 @@
 
 extern crate serde;
 
-#[macro_export]
-extern crate snapshot_mbe_macro;
 extern crate snapshot_proc_macro;
 
-pub use snapshot_mbe_macro::{snap, test_metadata, __test_function_name};
 pub use snapshot_proc_macro::*;
 
 use std::convert::AsRef;
@@ -46,11 +43,8 @@ impl<'de, T> Snapable for T
 pub struct Metadata<'a, P>
     where P: AsRef<Path>
 {
-    pub name: &'a str,
     pub test_function: String,
     pub file: P,
-    pub line: u32,
-    pub column: u32,
     pub module_path: &'a str,
 }
 
