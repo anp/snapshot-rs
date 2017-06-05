@@ -37,7 +37,7 @@ pub fn snapshot(attribute: TokenStream, function: TokenStream) -> TokenStream {
     };
 
     // TODO get the function name!!!!
-    panic!("haha we're finding the function name");
+    panic!("haha function name is {}", ident);
 
 
     <TokenStream as FromStr>::from_str(&src).unwrap()
