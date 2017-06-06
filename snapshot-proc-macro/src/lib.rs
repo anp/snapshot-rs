@@ -52,6 +52,11 @@ pub fn snapshot(_: TokenStream, function: TokenStream) -> TokenStream {
                 file, module_path, test_function,
             };
 
+            let (mut snap_path, snap_file) = metadata.path(env!("CARGO_MANIFEST_DIR"));
+
+            snap_path.push(snap_file);
+            panic!("{:?}", snap_path);
+
             if let Ok(_) = ::std::env::var("UPDATE_SNAPSHOTS") {
                 // TODO update snapshots
             } else {
