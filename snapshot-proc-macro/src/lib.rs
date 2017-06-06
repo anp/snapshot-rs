@@ -7,16 +7,16 @@ extern crate proc_macro2;
 extern crate quote;
 extern crate syn;
 
-use std::str::FromStr;
 use proc_macro::TokenStream;
 use syn::*;
 
 #[proc_macro_attribute]
-pub fn snapshot(attribute: TokenStream, function: TokenStream) -> TokenStream {
+pub fn snapshot(_: TokenStream, function: TokenStream) -> TokenStream {
     let src = function.to_string();
     let function = proc_macro2::TokenStream::from(function);
     let mut inner_fn: Item = function.into();
 
+    // swap the inner/outer function names in the Item
     let (outer_fn_token, outer_fn_name, inner_fn_name, inner_fn_token) = {
         let mut fn_item = match inner_fn.node {
             ItemKind::Fn(ref mut item) => item,
@@ -39,6 +39,9 @@ pub fn snapshot(attribute: TokenStream, function: TokenStream) -> TokenStream {
         fn #outer_fn_token() {
             #inner_fn
 
+            // run the user's snapshot test first, in case it panics
+            let current_result = #inner_fn_token();
+
             use ::snapshot::Snapable;
 
             let file = file!();
@@ -48,8 +51,6 @@ pub fn snapshot(attribute: TokenStream, function: TokenStream) -> TokenStream {
             let metadata = ::snapshot::Metadata {
                 file, module_path, test_function,
             };
-
-            let current_result = #inner_fn_token();
 
             if let Ok(_) = ::std::env::var("UPDATE_SNAPSHOTS") {
                 // TODO update snapshots

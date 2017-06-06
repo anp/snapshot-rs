@@ -1,14 +1,11 @@
-#![feature(use_extern_macros)]
-
 extern crate serde;
 
+#[macro_use]
 extern crate snapshot_proc_macro;
 
 pub use snapshot_proc_macro::*;
 
-use std::convert::AsRef;
 use std::fmt::Debug;
-use std::path::{Path, PathBuf};
 use serde::{Deserialize, Serialize};
 
 pub trait Snapable {
