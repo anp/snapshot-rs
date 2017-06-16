@@ -41,15 +41,15 @@ pub struct Metadata<'a> {
 
 impl<'a> Metadata<'a> {
     pub fn path(&self, crate_root: &str) -> (PathBuf, OsString) {
-        let mut ret = PathBuf::from(crate_root);
-
         let file_path = &Path::new(self.file);
 
         let mut components = file_path.components();
 
         // strip the filename
-        let file_to_write = components.next_back().unwrap().as_os_str().to_owned();
+        let mut file_to_write = components.next_back().unwrap().as_os_str().to_owned();
+        file_to_write.push(".snap");
 
+        let mut ret = PathBuf::from(crate_root);
         for dir in components {
             ret.push(dir.as_os_str());
         }
