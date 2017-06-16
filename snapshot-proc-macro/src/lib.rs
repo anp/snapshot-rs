@@ -17,13 +17,14 @@ pub fn snapshot(_: TokenStream, function: TokenStream) -> TokenStream {
     let mut inner_fn: Item = function.into();
 
     // swap the inner/outer function names in the Item
-    let (outer_fn_token, outer_fn_name, inner_fn_name, inner_fn_token) = {
+    let (outer_fn_token, outer_fn_name, inner_fn_token, return_ty) = {
         let mut fn_item = match inner_fn.node {
             ItemKind::Fn(ref mut item) => item,
             _ => panic!("#[snapshot] can only be applied to functions"),
         };
 
-        // TODO swap the inner and outer fn names
+        // TODO check for generics, input variables, etc.
+
         let outer_fn_token = fn_item.ident.clone();
         let outer_fn_name = outer_fn_token.to_string();
         let inner_fn_name = format!("__snapshot_inner_{}", outer_fn_token);
@@ -31,7 +32,12 @@ pub fn snapshot(_: TokenStream, function: TokenStream) -> TokenStream {
 
         fn_item.ident = inner_fn_token.clone();
 
-        (outer_fn_token, outer_fn_name, inner_fn_name, inner_fn_token)
+        let return_ty = match fn_item.decl.output {
+            FunctionRetTy::Default => panic!("#[snapshot] can only be applied to functions with return values"),
+            FunctionRetTy::Ty(ref t, _) => t.clone(),
+        };
+
+        (outer_fn_token, outer_fn_name, inner_fn_token, return_ty)
     };
 
     let output = quote! {
@@ -55,12 +61,11 @@ pub fn snapshot(_: TokenStream, function: TokenStream) -> TokenStream {
             let (mut snap_path, snap_file) = metadata.path(env!("CARGO_MANIFEST_DIR"));
 
             snap_path.push(snap_file);
-            panic!("{:?}", snap_path);
 
             if let Ok(_) = ::std::env::var("UPDATE_SNAPSHOTS") {
-                // TODO update snapshots
+                <#return_ty as Snapable>::update_snapshot(&current_result, metadata);
             } else {
-                // TODO check snapshots
+                <#return_ty as Snapable>::check_snapshot(&current_result, metadata);
             }
         }
     };
