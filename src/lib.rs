@@ -16,7 +16,7 @@ pub use snapshot_proc_macro::*;
 use std::collections::HashMap;
 use std::ffi::OsString;
 use std::fmt::Debug;
-use std::fs::File;
+use std::fs::{create_dir_all, File};
 use std::io::BufReader;
 use std::path::{Path, PathBuf};
 use serde::Serialize;
@@ -99,7 +99,18 @@ impl<S> Snapshot<S>
             relative_path,
         } = self.path(manifest_dir);
 
-        let snap_file = match File::open(&absolute_path) {
+        let mut dir_to_create = PathBuf::from(manifest_dir);
+        dir_to_create.push(snap_dir.clone());
+        match create_dir_all(&dir_to_create) {
+            Ok(_) => (),
+            Err(why) => {
+                panic!("Unable to create snapshots directory {:?}: {:?}",
+                       snap_dir,
+                       why.kind())
+            }
+        }
+
+        let snap_file = match File::create(&absolute_path) {
             Ok(f) => f,
             Err(why) => {
                 panic!("Unable to create snapshot file {:?}: {:?}",
@@ -107,6 +118,8 @@ impl<S> Snapshot<S>
                        why.kind())
             }
         };
+
+        // TODO write snapshot to disk
 
         unimplemented!();
     }
