@@ -12,6 +12,8 @@ pub use snapshot_proc_macro::*;
 
 use std::ffi::OsString;
 use std::fmt::Debug;
+use std::fs::File;
+use std::io::prelude::*;
 use std::path::{Path, PathBuf};
 use serde::{Deserialize, Serialize};
 
@@ -29,30 +31,81 @@ pub struct Snapshot<'a, S: Snapable> {
 impl<'a, S> Snapshot<'a, S>
     where S: Snapable
 {
-    pub fn path(&self, crate_root: &str) -> (PathBuf, OsString) {
+    fn path(&self, manifest_dir: &str) -> SnapFileSpec {
         let file_path = &Path::new(self.file);
 
         let mut components = file_path.components();
 
         // strip the filename
-        let mut file_to_write = components.next_back().unwrap().as_os_str().to_owned();
-        file_to_write.push(".snap");
+        let mut filename = components.next_back().unwrap().as_os_str().to_owned();
+        filename.push(".snap");
 
-        let mut ret = PathBuf::from(crate_root);
-        for dir in components {
-            ret.push(dir.as_os_str());
+        let mut dir = PathBuf::new();
+        for directory in components {
+            dir.push(directory.as_os_str());
         }
 
-        ret.push("__snapshots__");
+        dir.push("__snapshots__");
 
-        (ret, file_to_write)
+        let mut absolute_path = PathBuf::from(manifest_dir);
+        absolute_path.push(dir.clone());
+        absolute_path.push(filename.clone());
+
+        let mut relative_path = PathBuf::from(dir.clone());
+        relative_path.push(filename.clone());
+
+        SnapFileSpec {
+            dir,
+            filename,
+            absolute_path,
+            relative_path,
+        }
     }
 
     pub fn check_snapshot(&self, manifest_dir: &str) {
+        let SnapFileSpec {
+            dir: snap_dir,
+            filename: snap_filename,
+            absolute_path,
+            relative_path,
+        } = self.path(manifest_dir);
+
+        let snap_file = match File::open(&absolute_path) {
+            Ok(f) => f,
+            Err(why) => {
+                panic!("Unable to open snapshot file {:?}: {:?}",
+                       relative_path,
+                       why.kind())
+            }
+        };
+
         unimplemented!();
     }
 
     pub fn update_snapshot(&self, manifest_dir: &str) {
+        let SnapFileSpec {
+            dir: snap_dir,
+            filename: snap_filename,
+            absolute_path,
+            relative_path,
+        } = self.path(manifest_dir);
+
+        let snap_file = match File::open(&absolute_path) {
+            Ok(f) => f,
+            Err(why) => {
+                panic!("Unable to create snapshot file {:?}: {:?}",
+                       relative_path,
+                       why.kind())
+            }
+        };
+
         unimplemented!();
     }
+}
+
+struct SnapFileSpec {
+    dir: PathBuf,
+    filename: OsString,
+    relative_path: PathBuf,
+    absolute_path: PathBuf,
 }
