@@ -1,5 +1,10 @@
 extern crate serde;
+#[macro_use]
+extern crate serde_derive;
 
+// we get an unused import when using macro use, but a
+// "this has no effect without macro_use" message otherwise
+#[allow(unused_imports)]
 #[macro_use]
 extern crate snapshot_proc_macro;
 
@@ -10,36 +15,21 @@ use std::fmt::Debug;
 use std::path::{Path, PathBuf};
 use serde::{Deserialize, Serialize};
 
-pub trait Snapable {
-    fn check_snapshot(&self, md: Metadata) -> Result<(), ()>;
-    fn write_snapshot(&self, md: Metadata) -> Result<(), ()>;
-    fn update_snapshot(&self, md: Metadata) -> Result<(), ()>;
-}
+pub trait Snapable {}
+impl<'de, T> Snapable for T where T: Debug + Deserialize<'de> + Serialize {}
 
-impl<'de, T> Snapable for T
-    where T: Debug + Deserialize<'de> + Serialize
-{
-    fn check_snapshot(&self, md: Metadata) -> Result<(), ()> {
-        unimplemented!();
-    }
-
-    fn write_snapshot(&self, md: Metadata) -> Result<(), ()> {
-        unimplemented!();
-    }
-
-    fn update_snapshot(&self, md: Metadata) -> Result<(), ()> {
-        unimplemented!();
-    }
-}
-
-#[derive(Debug)]
-pub struct Metadata<'a> {
-    pub test_function: &'a str,
+#[derive(Debug, Deserialize, Serialize)]
+pub struct Snapshot<'a, S: Snapable> {
+    pub manifest_dir: &'a str,
     pub file: &'a str,
     pub module_path: &'a str,
+    pub test_function: &'a str,
+    pub recorded_value: S,
 }
 
-impl<'a> Metadata<'a> {
+impl<'a, S> Snapshot<'a, S>
+    where S: Snapable
+{
     pub fn path(&self, crate_root: &str) -> (PathBuf, OsString) {
         let file_path = &Path::new(self.file);
 
@@ -56,7 +46,14 @@ impl<'a> Metadata<'a> {
 
         ret.push("__snapshots__");
 
-        // FIXME replace the .rs extension with something sane
         (ret, file_to_write)
+    }
+
+    pub fn check_snapshot(&self) {
+        unimplemented!();
+    }
+
+    pub fn update_snapshot(&self) {
+        unimplemented!();
     }
 }
