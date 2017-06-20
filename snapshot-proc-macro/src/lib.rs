@@ -42,9 +42,9 @@ pub fn snapshot(_: TokenStream, function: TokenStream) -> TokenStream {
             // run the user's snapshot test first, in case it panics
             let recorded_value = #inner_fn_token();
 
-            let file = file!();
-            let module_path = module_path!();
-            let test_function = #outer_fn_name;
+            let file = file!().to_owned();
+            let module_path = module_path!().to_owned();
+            let test_function = (#outer_fn_name).to_owned();
 
             let snapshot = ::snapshot::Snapshot {
                 file, module_path, test_function, recorded_value,

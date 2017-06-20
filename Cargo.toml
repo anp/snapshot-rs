@@ -9,6 +9,8 @@ keywords = ["test", "testing", "regression", "snapshot", "golden master"]
 categories = ["development-tools"]
 
 [dependencies]
+pretty_assertions = "^0.2.0"
 serde = "^1.0.7"
 serde_derive = "^1.0.8"
+serde_json = "^1.0.2"
 snapshot-proc-macro = { path = "snapshot-proc-macro" }
