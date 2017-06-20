@@ -20,7 +20,6 @@ impl<'de, T> Snapable for T where T: Debug + Deserialize<'de> + Serialize {}
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Snapshot<'a, S: Snapable> {
-    pub manifest_dir: &'a str,
     pub file: &'a str,
     pub module_path: &'a str,
     pub test_function: &'a str,
@@ -49,11 +48,11 @@ impl<'a, S> Snapshot<'a, S>
         (ret, file_to_write)
     }
 
-    pub fn check_snapshot(&self) {
+    pub fn check_snapshot(&self, manifest_dir: &str) {
         unimplemented!();
     }
 
-    pub fn update_snapshot(&self) {
+    pub fn update_snapshot(&self, manifest_dir: &str) {
         unimplemented!();
     }
 }

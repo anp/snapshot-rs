@@ -47,13 +47,14 @@ pub fn snapshot(_: TokenStream, function: TokenStream) -> TokenStream {
             let test_function = #outer_fn_name;
 
             let snapshot = ::snapshot::Snapshot {
-                file, module_path, test_function, manifest_dir: env!("CARGO_MANIFEST_DIR"), recorded_value,
+                file, module_path, test_function, recorded_value,
             };
 
+            let manifest_dir = env!("CARGO_MANIFEST_DIR");
             if let Ok(_) = ::std::env::var("UPDATE_SNAPSHOTS") {
-                snapshot.update_snapshot();
+                snapshot.update_snapshot(manifest_dir);
             } else {
-                snapshot.check_snapshot();
+                snapshot.check_snapshot(manifest_dir);
             }
         }
     };
