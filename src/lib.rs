@@ -31,37 +31,6 @@ pub struct Snapshot<'a, S: Snapable> {
 impl<'a, S> Snapshot<'a, S>
     where S: Snapable
 {
-    fn path(&self, manifest_dir: &str) -> SnapFileSpec {
-        let file_path = &Path::new(self.file);
-
-        let mut components = file_path.components();
-
-        // strip the filename
-        let mut filename = components.next_back().unwrap().as_os_str().to_owned();
-        filename.push(".snap");
-
-        let mut dir = PathBuf::new();
-        for directory in components {
-            dir.push(directory.as_os_str());
-        }
-
-        dir.push("__snapshots__");
-
-        let mut absolute_path = PathBuf::from(manifest_dir);
-        absolute_path.push(dir.clone());
-        absolute_path.push(filename.clone());
-
-        let mut relative_path = PathBuf::from(dir.clone());
-        relative_path.push(filename.clone());
-
-        SnapFileSpec {
-            dir,
-            filename,
-            absolute_path,
-            relative_path,
-        }
-    }
-
     pub fn check_snapshot(&self, manifest_dir: &str) {
         let SnapFileSpec {
             dir: snap_dir,
@@ -100,6 +69,37 @@ impl<'a, S> Snapshot<'a, S>
         };
 
         unimplemented!();
+    }
+
+    fn path(&self, manifest_dir: &str) -> SnapFileSpec {
+        let file_path = &Path::new(self.file);
+
+        let mut components = file_path.components();
+
+        // strip the filename
+        let mut filename = components.next_back().unwrap().as_os_str().to_owned();
+        filename.push(".snap");
+
+        let mut dir = PathBuf::new();
+        for directory in components {
+            dir.push(directory.as_os_str());
+        }
+
+        dir.push("__snapshots__");
+
+        let mut absolute_path = PathBuf::from(manifest_dir);
+        absolute_path.push(dir.clone());
+        absolute_path.push(filename.clone());
+
+        let mut relative_path = PathBuf::from(dir.clone());
+        relative_path.push(filename.clone());
+
+        SnapFileSpec {
+            dir,
+            filename,
+            absolute_path,
+            relative_path,
+        }
     }
 }
 
