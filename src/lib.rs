@@ -53,21 +53,37 @@ impl<S> Snapshot<S>
         };
 
         let rdr = BufReader::new(snap_file);
-        let module_snapshots: HashMap<String, Snapshot<S>> = match serde_json::from_reader(rdr) {
-            Ok(ps) => ps,
-            Err(why) => {
-                panic!("Unable to parse previous snapshot as the correct type:\n{:#?}",
-                       why);
-            }
-        };
+        let mut module_snapshots: HashMap<String, Snapshot<serde_json::Value>> =
+            match serde_json::from_reader(rdr) {
+                Ok(ps) => ps,
+                Err(why) => {
+                    panic!("Unable to parse previous snapshot as the correct type:\n{:#?}",
+                           why);
+                }
+            };
 
         let snap_key = self.module_key();
-        let previous_snapshot = match module_snapshots.get(&snap_key) {
+        let previous_snapshot = match module_snapshots.remove(&snap_key) {
             Some(s) => s,
             None => {
                 panic!("Unable to find snapshot for test {:?} in {:?}",
                        snap_key,
                        relative_path)
+            }
+        };
+
+        let previous_snapshot = match serde_json::from_value(previous_snapshot.recorded_value) {
+            Ok(v) => {
+                Snapshot {
+                    recorded_value: v,
+                    file: previous_snapshot.file,
+                    test_function: previous_snapshot.test_function,
+                    module_path: previous_snapshot.module_path,
+                }
+            }
+            Err(why) => {
+                panic!("Unable to parse existing snapshot as correct type: {:?}",
+                       why)
             }
         };
 
@@ -88,7 +104,7 @@ impl<S> Snapshot<S>
                    "Test output doesn't match recorded snapshot!");
 
         // just as a catch all in case we need other fields?
-        assert_eq!(self, previous_snapshot, "Snapshot metadata is corrupt!");
+        assert_eq!(self, &previous_snapshot, "Snapshot metadata is corrupt!");
     }
 
     pub fn update_snapshot(&self, manifest_dir: &str) {
