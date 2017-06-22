@@ -17,7 +17,8 @@ use std::collections::HashMap;
 use std::ffi::OsString;
 use std::fmt::Debug;
 use std::fs::{create_dir_all, File};
-use std::io::BufReader;
+use std::io::{BufReader, BufWriter};
+use std::io::prelude::*;
 use std::path::{Path, PathBuf};
 use serde::Serialize;
 use serde::de::DeserializeOwned;
@@ -106,9 +107,9 @@ impl<S> Snapshot<S>
     pub fn update_snapshot(&self, manifest_dir: &str) {
         let SnapFileSpec {
             dir: snap_dir,
-            filename: snap_filename,
             absolute_path,
             relative_path,
+            ..
         } = self.path(manifest_dir);
 
         let mut dir_to_create = PathBuf::from(manifest_dir);
@@ -131,9 +132,16 @@ impl<S> Snapshot<S>
             }
         };
 
-        // TODO write snapshot to disk
+        let to_write = match serde_json::to_string_pretty(self) {
+            Ok(t) => t,
+            Err(why) => panic!("Unable to serialize test value: {:?}", why),
+        };
 
-        unimplemented!();
+        let mut writer = BufWriter::new(snap_file);
+        match writeln!(&mut writer, "{}", to_write) {
+            Ok(_) => (),
+            Err(why) => panic!("Unable to write snapshot value to file: {:?}", why),
+        }
     }
 
     fn module_key(&self) -> String {
