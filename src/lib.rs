@@ -57,8 +57,7 @@ impl<S> Snapshot<S>
             match serde_json::from_reader(rdr) {
                 Ok(ps) => ps,
                 Err(why) => {
-                    panic!("Unable to parse previous snapshot as the correct type:\n{:#?}",
-                           why);
+                    panic!("Unable to parse previous snapshot:\n{:#?}", why);
                 }
             };
 
@@ -72,39 +71,36 @@ impl<S> Snapshot<S>
             }
         };
 
-        let previous_snapshot = match serde_json::from_value(previous_snapshot.recorded_value) {
-            Ok(v) => {
-                Snapshot {
-                    recorded_value: v,
-                    file: previous_snapshot.file,
-                    test_function: previous_snapshot.test_function,
-                    module_path: previous_snapshot.module_path,
-                }
+        let Snapshot {
+            recorded_value,
+            file,
+            module_path,
+            test_function,
+        } = previous_snapshot;
+
+        match serde_json::from_value(recorded_value) {
+            Ok(recorded_value) => {
+                assert_eq!(self.file,
+                           file,
+                           "Filename for snapshot test function doesn't match recorded one");
+
+                assert_eq!(self.module_path,
+                           module_path,
+                           "Module paths for snapshot test function doesn't match recorded one");
+
+                assert_eq!(self.test_function,
+                           test_function,
+                           "Test function name doesn't match recorded one");
+
+                assert_eq!(self.recorded_value,
+                           recorded_value,
+                           "Test output doesn't match recorded snapshot!");
             }
             Err(why) => {
                 panic!("Unable to parse existing snapshot as correct type: {:?}",
                        why)
             }
-        };
-
-        assert_eq!(self.file,
-                   previous_snapshot.file,
-                   "Filename for snapshot test function doesn't match recorded one");
-
-        assert_eq!(self.module_path,
-                   previous_snapshot.module_path,
-                   "Module paths for snapshot test function doesn't match recorded one");
-
-        assert_eq!(self.test_function,
-                   previous_snapshot.test_function,
-                   "Test function name doesn't match recorded one");
-
-        assert_eq!(self.recorded_value,
-                   previous_snapshot.recorded_value,
-                   "Test output doesn't match recorded snapshot!");
-
-        // just as a catch all in case we need other fields?
-        assert_eq!(self, &previous_snapshot, "Snapshot metadata is corrupt!");
+        }
     }
 
     pub fn update_snapshot(&self, manifest_dir: &str) {
