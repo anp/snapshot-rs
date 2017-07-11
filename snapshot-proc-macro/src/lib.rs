@@ -2,7 +2,6 @@
 #![recursion_limit = "128"]
 
 extern crate proc_macro;
-extern crate proc_macro2;
 #[macro_use]
 extern crate quote;
 extern crate syn;
@@ -12,8 +11,7 @@ use syn::*;
 
 #[proc_macro_attribute]
 pub fn snapshot(_: TokenStream, function: TokenStream) -> TokenStream {
-    let function = proc_macro2::TokenStream::from(function);
-    let mut inner_fn: Item = function.into();
+    let mut inner_fn: Item = syn::parse(function.into()).unwrap();
 
     // swap the inner/outer function names in the Item
     let (outer_fn_token, outer_fn_name, inner_fn_token) = {
@@ -59,6 +57,5 @@ pub fn snapshot(_: TokenStream, function: TokenStream) -> TokenStream {
         }
     };
 
-    let output: proc_macro2::TokenStream = output.into();
     output.into()
 }

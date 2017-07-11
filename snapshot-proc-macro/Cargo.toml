@@ -6,10 +6,10 @@ authors = ["Adam Perry <adam.n.perry@gmail.com>"]
 [lib]
 proc-macro = true
 
-[dependencies]
-proc-macro2 = { git = "https://github.com/alexcrichton/proc-macro2.git" }
-quote = { git = 'https://github.com/dtolnay/quote' }
+[dependencies.quote]
+git = "https://github.com/dtolnay/quote.git"
 
 [dependencies.syn]
 git = "https://github.com/dtolnay/syn.git"
 features = ["parsing", "printing", "full", "extra-traits", "clone-impls" ]
+rev = "5640be2854cf4efcc24106afec6b0dc62a55325d"
