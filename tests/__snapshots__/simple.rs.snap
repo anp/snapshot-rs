@@ -1,4 +1,14 @@
 {
+  "simple::test::compound_snapshot": {
+    "file": "tests/simple.rs",
+    "module_path": "simple::test",
+    "test_function": "compound_snapshot",
+    "recorded_value": {
+      "a": 1.0,
+      "x": 12,
+      "z": "woowwowow"
+    }
+  },
   "simple::test::simple_snapshot": {
     "file": "tests/simple.rs",
     "module_path": "simple::test",
