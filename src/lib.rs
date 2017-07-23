@@ -22,14 +22,10 @@ use std::path::{Path, PathBuf};
 use serde::Serialize;
 use serde::de::DeserializeOwned;
 
-type SnapFileContents = BTreeMap<String, Snapshot<serde_json::Value>>;
+pub type SnapFileContents = BTreeMap<String, Snapshot<serde_json::Value>>;
 
 pub trait Snapable {}
-impl<T> Snapable for T
-where
-    T: Debug + DeserializeOwned + Serialize,
-{
-}
+impl<T> Snapable for T where T: Debug + DeserializeOwned + Serialize {}
 
 #[derive(Debug, Deserialize, PartialEq, Serialize)]
 pub struct Snapshot<S: Snapable> {
@@ -40,8 +36,7 @@ pub struct Snapshot<S: Snapable> {
 }
 
 impl<S> Snapshot<S>
-where
-    S: Snapable + Debug + DeserializeOwned + PartialEq + Serialize,
+    where S: Snapable + Debug + DeserializeOwned + PartialEq + Serialize
 {
     pub fn check_snapshot(&self, manifest_dir: &str) {
         let SnapFileSpec {
@@ -53,11 +48,9 @@ where
         let snap_file = match File::open(&absolute_path) {
             Ok(f) => f,
             Err(why) => {
-                panic!(
-                    "Unable to open snapshot file {:?}: {:?}",
-                    relative_path,
-                    why.kind()
-                )
+                panic!("Unable to open snapshot file {:?}: {:?}",
+                       relative_path,
+                       why.kind())
             }
         };
 
@@ -73,11 +66,9 @@ where
         let previous_snapshot = match module_snapshots.remove(&snap_key) {
             Some(s) => s,
             None => {
-                panic!(
-                    "Unable to find snapshot for test {:?} in {:?}",
-                    snap_key,
-                    relative_path
-                )
+                panic!("Unable to find snapshot for test {:?} in {:?}",
+                       snap_key,
+                       relative_path)
             }
         };
 
@@ -90,35 +81,25 @@ where
 
         match serde_json::from_value(recorded_value) {
             Ok(recorded_value) => {
-                assert_eq!(
-                    self.file,
-                    file,
-                    "Filename for snapshot test function doesn't match recorded one"
-                );
+                assert_eq!(self.file,
+                           file,
+                           "Filename for snapshot test function doesn't match recorded one");
 
-                assert_eq!(
-                    self.module_path,
-                    module_path,
-                    "Module paths for snapshot test function doesn't match recorded one"
-                );
+                assert_eq!(self.module_path,
+                           module_path,
+                           "Module paths for snapshot test function doesn't match recorded one");
 
-                assert_eq!(
-                    self.test_function,
-                    test_function,
-                    "Test function name doesn't match recorded one"
-                );
+                assert_eq!(self.test_function,
+                           test_function,
+                           "Test function name doesn't match recorded one");
 
-                assert_eq!(
-                    self.recorded_value,
-                    recorded_value,
-                    "Test output doesn't match recorded snapshot!"
-                );
+                assert_eq!(self.recorded_value,
+                           recorded_value,
+                           "Test output doesn't match recorded snapshot!");
             }
             Err(why) => {
-                panic!(
-                    "Unable to parse existing snapshot as correct type: {:?}",
-                    why
-                )
+                panic!("Unable to parse existing snapshot as correct type: {:?}",
+                       why)
             }
         }
     }
@@ -136,11 +117,9 @@ where
         match create_dir_all(&dir_to_create) {
             Ok(_) => (),
             Err(why) => {
-                panic!(
-                    "Unable to create snapshots directory {:?}: {:?}",
-                    snap_dir,
-                    why.kind()
-                )
+                panic!("Unable to create snapshots directory {:?}: {:?}",
+                       snap_dir,
+                       why.kind())
             }
         }
 
@@ -154,11 +133,9 @@ where
                 match serde_json::from_str(&contents) {
                     Ok(v) => v,
                     Err(why) => {
-                        panic!(
-                            "Unable to parse potentially corrupt snapshot file {:?}: {:?}",
-                            relative_path,
-                            why
-                        )
+                        panic!("Unable to parse potentially corrupt snapshot file {:?}: {:?}",
+                               relative_path,
+                               why)
                     }
                 }
             }
@@ -166,11 +143,9 @@ where
                 match why.kind() {
                     ::std::io::ErrorKind::NotFound => SnapFileContents::new(),
                     _ => {
-                        panic!(
-                            "Unable to open existing snapshot file {:?}: {:?}",
-                            relative_path,
-                            why.kind()
-                        )
+                        panic!("Unable to open existing snapshot file {:?}: {:?}",
+                               relative_path,
+                               why.kind())
                     }
                 }
             }
@@ -181,23 +156,20 @@ where
         // now we need to update the particular snapshot we care about
         existing_snaps.insert(self.module_key(), self.create_deserializable());
 
-        let writer = BufWriter::new(
-            OpenOptions::new()
-                .read(true)
-                .write(true)
-                .create(true)
-                .open(&absolute_path)
-                .expect("Unable to open/create file that we just opened/created!"),
-        );
+        let writer =
+            BufWriter::new(OpenOptions::new()
+                               .read(true)
+                               .write(true)
+                               .create(true)
+                               .open(&absolute_path)
+                               .expect("Unable to open/create file that we just opened/created!",));
 
         match serde_json::to_writer_pretty(writer, &existing_snaps) {
             Ok(_) => (),
             Err(why) => {
-                panic!(
-                    "Unable to serialize or write snapshot result to {:?}: {:?}",
-                    relative_path,
-                    why
-                )
+                panic!("Unable to serialize or write snapshot result to {:?}: {:?}",
+                       relative_path,
+                       why)
             }
         }
     }
