@@ -3,9 +3,14 @@ name = "cargo-snapshot"
 version = "0.1.0"
 authors = ["Adam Perry <adam.n.perry@gmail.com>"]
 license = "MIT"
-description = "Golden master regression testing CLI interface."
+description = "CLI interface for \"snapshot\" or golden master regression testing."
 repository = "https://github.com/dikaiosune/snapshot-rs"
 keywords = ["test", "testing", "regression", "snapshot", "golden master"]
 categories = ["development-tools"]
 
+[dependencies.snapshot]
+version = "*"
+path = "../"
+
 [dependencies]
+clap = "^2.25.1"
