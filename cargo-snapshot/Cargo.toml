@@ -14,3 +14,6 @@ path = "../"
 
 [dependencies]
 clap = "^2.25.1"
+serde = "^1.0.10"
+serde_json = "1.0.2"
+walkdir = "^1.0.7"
