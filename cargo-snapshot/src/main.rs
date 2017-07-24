@@ -89,7 +89,7 @@ fn interactive_process() -> SnapResult<()> {
 
     let mut failed_tests = Vec::new();
 
-    println!("Checking for out of date snapshot tests...\n");
+    println!("Checking for out of date snapshot tests...");
     for test_fn in test_function_names {
         let mut test_fn_chunks = test_fn.splitn(2, "::");
 
