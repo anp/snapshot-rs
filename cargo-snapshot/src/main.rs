@@ -12,7 +12,7 @@ use std::io::BufReader;
 use std::process::{Command, Stdio};
 
 use clap::{Arg, SubCommand};
-use dialoguer::Checkboxes;
+use dialoguer::{Checkboxes, Select};
 use snapshot::SnapFileContents;
 use walkdir::WalkDir;
 
@@ -97,7 +97,39 @@ fn main() {
             let fn_to_update = &failed_tests[fn_idx];
             println!("Updating {}...", &fn_to_update);
 
-            // TODO actually run the tests
+            let mut run_test = true;
+            while run_test {
+                let run_status = Command::new("cargo")
+                    .arg("test")
+                    .arg(fn_to_update)
+                    .env("UPDATE_SNAPSHOTS", "1")
+                    .status()
+                    .expect("unable to execute cargo");
+
+                if run_status.success() {
+                    run_test = false;
+                } else {
+                    println!("\nUpdating {} failed! What would you like to do?",
+                             fn_to_update);
+
+                    let options = ["Retry", "Skip", "Abort"];
+
+                    let selection = Select::new()
+                        .items(&options)
+                        .interact()
+                        .expect("unable to retrieve user input");
+
+                    if options[selection] == "Retry" {
+                        continue;
+                    } else if options[selection] == "Skip" {
+                        break;
+                    } else if options[selection] == "Abort" {
+                        ::std::process::exit(1);
+                    } else {
+                        panic!("invalid menu selection")
+                    }
+                }
+            }
         }
 
         println!("\nAll updates processed!");
