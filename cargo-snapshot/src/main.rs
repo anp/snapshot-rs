@@ -72,25 +72,14 @@ fn interactive_process() -> SnapResult<()> {
 
     println!("Checking for out of date snapshot tests...");
     for test_fn in test_function_names {
-        let mut test_fn_chunks = test_fn.0.splitn(2, "::");
-
-        // skip the crate name
-        test_fn_chunks
-            .next()
-            .expect("looks like an empty test function name");
-
-        let real_test_fn = test_fn_chunks
-            .next()
-            .expect("seemingly malformed test name");
-
-        let first_run = cmd("cargo", &["test", &real_test_fn])
+        let first_run = cmd("cargo", &["test", &test_fn.0])
             .stdout_capture()
             .stderr_capture()
             .run()
             .chain_err(|| "unable to execute cargo")?;
 
         if !first_run.status.success() {
-            failed_tests.push(real_test_fn.to_owned());
+            failed_tests.push(test_fn);
         }
     }
 
@@ -103,17 +92,17 @@ fn interactive_process() -> SnapResult<()> {
 
         let mut menu = Checkboxes::new();
         for failed in &failed_tests {
-            menu.item(failed);
+            menu.item(&failed.0);
         }
         let all_to_update = menu.interact().expect("error accepting user selections");
 
         for fn_idx in all_to_update {
             let fn_to_update = &failed_tests[fn_idx];
-            println!("Updating {}...", &fn_to_update);
+            println!("Updating {}...", &fn_to_update.0);
 
             let mut run_test = true;
             while run_test {
-                let run_output = cmd("cargo", &["test", fn_to_update])
+                let run_output = cmd("cargo", &["test", &fn_to_update.0])
                     .env("UPDATE_SNAPSHOTS", "1")
                     .stdout_capture()
                     .stderr_capture()
@@ -124,7 +113,7 @@ fn interactive_process() -> SnapResult<()> {
                     run_test = false;
                 } else {
                     println!("\nUpdating {} failed! What would you like to do?",
-                             fn_to_update);
+                             &fn_to_update.0);
 
                     match capture_failure_selection()? {
                         TestFailureSelection::Retry => continue,
@@ -167,7 +156,20 @@ fn find_existing_snapshot_test_names() -> SnapResult<Vec<FnName>> {
     let mut test_function_names = Vec::new();
     for snap_file in existing {
         for fun in snap_file.keys() {
-            test_function_names.push(FnName(fun.clone()));
+            // now we need to strip crate name from the string
+            let mut test_fn_chunks = fun.splitn(2, "::");
+
+            match test_fn_chunks.next() {
+                Some(_) => (),
+                None => bail!("malformed test fn name: empty"),
+            }
+
+            let real_test_fn = match test_fn_chunks.next() {
+                Some(n) => n,
+                None => bail!("malformed test fn name: only had crate name"),
+            };
+
+            test_function_names.push(FnName(real_test_fn.to_owned()));
         }
     }
     Ok(test_function_names)
