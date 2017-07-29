@@ -72,7 +72,7 @@ fn interactive_process() -> SnapResult<()> {
 
     println!("Checking for out of date snapshot tests...");
     for test_fn in test_function_names {
-        let mut test_fn_chunks = test_fn.splitn(2, "::");
+        let mut test_fn_chunks = test_fn.0.splitn(2, "::");
 
         // skip the crate name
         test_fn_chunks
@@ -142,23 +142,32 @@ fn interactive_process() -> SnapResult<()> {
     }
 }
 
-fn find_existing_snapshot_test_names() -> SnapResult<Vec<String>> {
+struct FnName(String);
+
+fn find_existing_snapshot_test_names() -> SnapResult<Vec<FnName>> {
     let cwd = ::std::env::current_dir()
         .chain_err(|| "unable to read cwd")?;
 
-    // FIXME(adam) don't just throw away errors;
-    let existing: Vec<SnapFileContents> = WalkDir::new(cwd)
-        .into_iter()
-        .map(|r| r.expect("unable to traverse project directory"))
-        .filter(|e| e.path().extension() == Some(OsStr::new("snap")))
-        .map(|p| BufReader::new(File::open(p.path()).expect("unable to open snapshot file")))
-        .map(|r| serde_json::from_reader(r).expect("unable to parse snapshot file"))
-        .collect::<Vec<_>>();
+    let mut existing: Vec<SnapFileContents> = Vec::new();
+
+    let snap_extension = OsStr::new("snap");
+    for walk_result in WalkDir::new(cwd) {
+        let entry = walk_result
+            .chain_err(|| "unable to traverse project directory")?;
+
+        if entry.path().extension() == Some(snap_extension) {
+            let rdr = BufReader::new(File::open(entry.path())
+                                         .chain_err(|| "unable to open snapshot file")?);
+            let contents = serde_json::from_reader(rdr)
+                .chain_err(|| "unable to parse snapshot file")?;
+            existing.push(contents);
+        }
+    }
 
     let mut test_function_names = Vec::new();
     for snap_file in existing {
         for fun in snap_file.keys() {
-            test_function_names.push(fun.clone());
+            test_function_names.push(FnName(fun.clone()));
         }
     }
     Ok(test_function_names)
