@@ -12,7 +12,6 @@ extern crate walkdir;
 use std::ffi::OsStr;
 use std::fs::File;
 use std::io::BufReader;
-use std::process::{Command, Stdio};
 
 use clap::{Arg, SubCommand};
 use dialoguer::{Checkboxes, Select};
@@ -102,15 +101,13 @@ fn interactive_process() -> SnapResult<()> {
             .next()
             .expect("seemingly malformed test name");
 
-        let first_run_status = Command::new("cargo")
-            .arg("test")
-            .arg(&real_test_fn)
-            .stdout(Stdio::null()) // FIXME(dikaiosune) these should be captured as machine readable
-            .stderr(Stdio::null()) // FIXME(dikaiosune) and just the tes
-            .status()
+        let first_run = cmd("cargo", &["test", &real_test_fn])
+            .stdout_capture()
+            .stderr_capture()
+            .run()
             .chain_err(|| "unable to execute cargo")?;
 
-        if !first_run_status.success() {
+        if !first_run.status.success() {
             failed_tests.push(real_test_fn.to_owned());
         }
     }
@@ -134,41 +131,56 @@ fn interactive_process() -> SnapResult<()> {
 
             let mut run_test = true;
             while run_test {
-                let run_status = Command::new("cargo")
-                    .arg("test")
-                    .arg(fn_to_update)
+                let run_output = cmd("cargo", &["test", fn_to_update])
                     .env("UPDATE_SNAPSHOTS", "1")
-                    .stdout(Stdio::null()) // FIXME(dikaiosune) these should be captured as JSON
-                    .stderr(Stdio::null()) // FIXME(dikaiosune) and just the test output shown
-                    .status()
+                    .stdout_capture()
+                    .stderr_capture()
+                    .run()
                     .chain_err(|| "unable to execute cargo")?;
 
-                if run_status.success() {
+                if run_output.status.success() {
                     run_test = false;
                 } else {
                     println!("\nUpdating {} failed! What would you like to do?",
                              fn_to_update);
 
-                    let options = ["Retry", "Skip", "Abort"];
-
-                    let selection = Select::new()
-                        .items(&options)
-                        .interact()
-                        .chain_err(|| "unable to retrieve user input")?;
-
-                    if options[selection] == "Retry" {
-                        continue;
-                    } else if options[selection] == "Skip" {
-                        break;
-                    } else if options[selection] == "Abort" {
-                        ::std::process::exit(1);
-                    } else {
-                        bail!("invalid menu selection")
+                    match capture_failure_selection()? {
+                        TestFailureSelection::Retry => continue,
+                        TestFailureSelection::Skip => break,
+                        TestFailureSelection::Abort => {
+                            println!("\nExiting...");
+                            ::std::process::exit(1);
+                        }
                     }
                 }
             }
         }
 
         Ok(())
+    }
+}
+
+enum TestFailureSelection {
+    Retry,
+    Skip,
+    Abort,
+}
+
+fn capture_failure_selection() -> SnapResult<TestFailureSelection> {
+    let options = ["Retry", "Skip", "Abort"];
+
+    let selection = Select::new()
+        .items(&options)
+        .interact()
+        .chain_err(|| "unable to retrieve user input")?;
+
+    if options[selection] == "Retry" {
+        Ok(TestFailureSelection::Retry)
+    } else if options[selection] == "Skip" {
+        Ok(TestFailureSelection::Skip)
+    } else if options[selection] == "Abort" {
+        Ok(TestFailureSelection::Abort)
+    } else {
+        bail!("invalid menu selection")
     }
 }
