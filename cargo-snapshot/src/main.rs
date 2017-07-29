@@ -1,6 +1,7 @@
 #[macro_use]
 extern crate clap;
 extern crate dialoguer;
+extern crate duct;
 #[macro_use]
 extern crate error_chain;
 extern crate serde;
@@ -15,6 +16,7 @@ use std::process::{Command, Stdio};
 
 use clap::{Arg, SubCommand};
 use dialoguer::{Checkboxes, Select};
+use duct::cmd;
 use snapshot::SnapFileContents;
 use walkdir::WalkDir;
 
@@ -41,19 +43,17 @@ fn run() -> SnapResult<()> {
         )
         .get_matches();
 
-    let update_matches = input.subcommand_matches("update");
-
-    if let Some(update_matches) = update_matches {
+    if let Some(update_matches) = input.subcommand_matches("update") {
         if update_matches.is_present("all") {
-            let status = Command::new("cargo")
-                .arg("test")
+            let output = cmd("cargo", &["test"])
                 .env("UPDATE_SNAPSHOTS", "1")
-                .stdout(Stdio::null()) // FIXME(dikaiosune) capture w JSON output
-                .stderr(Stdio::null()) // FIXME(dikaiosune) and print nice message
-                .status()
+                .stdout_capture()
+                .stderr_capture()
+                .run()
                 .chain_err(|| "unable to execute cargo")?;
 
-            if !status.success() {
+            if !output.status.success() {
+                // TODO(dikaiosune) print what failed
                 bail!("unable to update all snapshots!");
             }
         } else {
