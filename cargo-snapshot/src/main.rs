@@ -67,25 +67,7 @@ fn run() -> SnapResult<()> {
 }
 
 fn interactive_process() -> SnapResult<()> {
-    let cwd = ::std::env::current_dir()
-        .chain_err(|| "unable to read cwd")?;
-
-    // FIXME(adam) don't just throw away errors;
-    let existing: Vec<SnapFileContents> = WalkDir::new(cwd)
-        .into_iter()
-        .map(|r| r.expect("unable to traverse project directory"))
-        .filter(|e| e.path().extension() == Some(OsStr::new("snap")))
-        .map(|p| BufReader::new(File::open(p.path()).expect("unable to open snapshot file")))
-        .map(|r| serde_json::from_reader(r).expect("unable to parse snapshot file"))
-        .collect::<Vec<_>>();
-
-    let mut test_function_names = Vec::new();
-    for snap_file in existing {
-        for fun in snap_file.keys() {
-            test_function_names.push(fun.clone());
-        }
-    }
-
+    let test_function_names = find_existing_snapshot_test_names()?;
     let mut failed_tests = Vec::new();
 
     println!("Checking for out of date snapshot tests...");
@@ -117,7 +99,7 @@ fn interactive_process() -> SnapResult<()> {
         ::std::process::exit(0);
     } else {
         println!("\nPlease select which snapshot tests should be updated:");
-        println!("  (press <Space> to select, <Enter> to submit)\n");
+        println!("  <Space> to select, <Enter> to submit\n");
 
         let mut menu = Checkboxes::new();
         for failed in &failed_tests {
@@ -158,6 +140,28 @@ fn interactive_process() -> SnapResult<()> {
 
         Ok(())
     }
+}
+
+fn find_existing_snapshot_test_names() -> SnapResult<Vec<String>> {
+    let cwd = ::std::env::current_dir()
+        .chain_err(|| "unable to read cwd")?;
+
+    // FIXME(adam) don't just throw away errors;
+    let existing: Vec<SnapFileContents> = WalkDir::new(cwd)
+        .into_iter()
+        .map(|r| r.expect("unable to traverse project directory"))
+        .filter(|e| e.path().extension() == Some(OsStr::new("snap")))
+        .map(|p| BufReader::new(File::open(p.path()).expect("unable to open snapshot file")))
+        .map(|r| serde_json::from_reader(r).expect("unable to parse snapshot file"))
+        .collect::<Vec<_>>();
+
+    let mut test_function_names = Vec::new();
+    for snap_file in existing {
+        for fun in snap_file.keys() {
+            test_function_names.push(fun.clone());
+        }
+    }
+    Ok(test_function_names)
 }
 
 enum TestFailureSelection {
