@@ -94,6 +94,7 @@ fn interactive_process() -> SnapResult<()> {
             let fn_to_update = &failed_tests[fn_idx];
             println!("Updating {}...", &fn_to_update.0);
 
+            // attempt to update the snapshot in a loop, allowing user to change code in bt runs
             let mut run_test = true;
             while run_test {
                 let run_output = cmd("cargo", &["test", &fn_to_update.0])
@@ -128,10 +129,10 @@ fn interactive_process() -> SnapResult<()> {
 struct FnName(String);
 
 impl FnName {
+    // TODO this should let the user see why the test failed, or warn them if it wasn't from
+    // snapshot failure
     fn success(&self) -> SnapResult<bool> {
         Ok(cmd("cargo", &["test", &self.0])
-               .stdout_capture()
-               .stderr_capture()
                .run()
                .chain_err(|| "unable to execute cargo")?
                .status
