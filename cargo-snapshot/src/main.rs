@@ -71,14 +71,8 @@ fn interactive_process() -> SnapResult<()> {
     let mut failed_tests = Vec::new();
 
     println!("Checking for out of date snapshot tests...");
-    for test_fn in test_function_names {
-        let first_run = cmd("cargo", &["test", &test_fn.0])
-            .stdout_capture()
-            .stderr_capture()
-            .run()
-            .chain_err(|| "unable to execute cargo")?;
-
-        if !first_run.status.success() {
+    for test_fn in &test_function_names {
+        if !test_fn.success()? {
             failed_tests.push(test_fn);
         }
     }
@@ -132,6 +126,18 @@ fn interactive_process() -> SnapResult<()> {
 }
 
 struct FnName(String);
+
+impl FnName {
+    fn success(&self) -> SnapResult<bool> {
+        Ok(cmd("cargo", &["test", &self.0])
+               .stdout_capture()
+               .stderr_capture()
+               .run()
+               .chain_err(|| "unable to execute cargo")?
+               .status
+               .success())
+    }
+}
 
 fn find_existing_snapshot_test_names() -> SnapResult<Vec<FnName>> {
     let cwd = ::std::env::current_dir()
