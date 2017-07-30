@@ -88,7 +88,9 @@ fn interactive_process() -> SnapResult<()> {
         for failed in &failed_tests {
             menu.item(&failed.0);
         }
-        let all_to_update = menu.interact().expect("error accepting user selections");
+
+        let all_to_update = menu.interact()
+            .chain_err(|| "error accepting user selections")?;
 
         for fn_idx in all_to_update {
             let fn_to_update = &failed_tests[fn_idx];
