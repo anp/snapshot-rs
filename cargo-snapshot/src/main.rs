@@ -4,10 +4,14 @@ extern crate dialoguer;
 extern crate duct;
 #[macro_use]
 extern crate error_chain;
+#[macro_use]
+extern crate nom;
 extern crate serde;
 extern crate serde_json;
 extern crate snapshot;
 extern crate walkdir;
+
+mod parse_tests;
 
 use std::ffi::OsStr;
 use std::fs::File;
