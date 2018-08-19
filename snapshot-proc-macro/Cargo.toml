@@ -2,6 +2,9 @@
 name = "snapshot-proc-macro"
 version = "0.1.0"
 authors = ["Adam Perry <adam.n.perry@gmail.com>"]
+description = "Procedural macro for generating snapshot tests."
+license = "MIT"
+repository = "https://github.com/anp/snapshot-rs"
 
 [lib]
 proc-macro = true
