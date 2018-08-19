@@ -14,8 +14,8 @@ pub fn snapshot(_: TokenStream, function: TokenStream) -> TokenStream {
 
     // swap the inner/outer function names in the Item
     let (outer_fn_token, outer_fn_name, inner_fn_token) = {
-        let mut fn_item = match inner_fn.node {
-            ItemKind::Fn(ref mut item) => item,
+        let mut fn_item = match inner_fn {
+            Item::Fn(ref mut item) => item,
             _ => panic!("#[snapshot] can only be applied to functions"),
         };
 
@@ -24,7 +24,7 @@ pub fn snapshot(_: TokenStream, function: TokenStream) -> TokenStream {
         let outer_fn_token = fn_item.ident.clone();
         let outer_fn_name = outer_fn_token.to_string();
         let inner_fn_name = format!("__snapshot_inner_{}", outer_fn_token);
-        let inner_fn_token = syn::Ident::from(inner_fn_name.clone());
+        let inner_fn_token = syn::Ident::new(&inner_fn_name, fn_item.ident.span());
 
         fn_item.ident = inner_fn_token.clone();
 

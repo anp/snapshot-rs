@@ -1,2 +1,4 @@
 target
 *.bk
+/Cargo.lock
+/snapshot-proc-macro/Cargo.lock

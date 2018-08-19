@@ -6,10 +6,9 @@ authors = ["Adam Perry <adam.n.perry@gmail.com>"]
 [lib]
 proc-macro = true
 
-[dependencies.quote]
-git = "https://github.com/dtolnay/quote.git"
+[dependencies]
+quote = "0.6"
 
 [dependencies.syn]
-git = "https://github.com/dtolnay/syn.git"
+version = "0.14"
 features = ["parsing", "printing", "full", "extra-traits", "clone-impls" ]
-rev = "5640be2854cf4efcc24106afec6b0dc62a55325d"
