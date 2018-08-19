@@ -5,7 +5,7 @@ authors = ["Adam Perry <adam.n.perry@gmail.com>"]
 license = "MIT"
 description = "\"Snapshot\" or golden master regression testing."
 repository = "https://github.com/anp/snapshot-rs"
-keywords = ["test", "testing", "regression", "snapshot", "golden master"]
+keywords = ["test", "testing", "regression", "snapshot", "golden-master"]
 categories = ["development-tools"]
 
 [dependencies]
