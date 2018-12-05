@@ -4,4 +4,4 @@ An attempt to provide functionality similar to [Jest's snapshot testing](https:/
 
 ## Nightly rustc
 
-`nightly-2017-07-11-x86_64-apple-darwin` in rustup
+`nightly-2017-07-11` in rustup
