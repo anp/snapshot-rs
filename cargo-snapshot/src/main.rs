@@ -1,16 +1,3 @@
-#[macro_use]
-extern crate clap;
-extern crate dialoguer;
-extern crate duct;
-#[macro_use]
-extern crate error_chain;
-#[macro_use]
-extern crate nom;
-extern crate serde;
-extern crate serde_json;
-extern crate snapshot;
-extern crate walkdir;
-
 mod parse_tests;
 
 use std::ffi::OsStr;
@@ -22,6 +9,9 @@ use dialoguer::{Checkboxes, Select};
 use duct::cmd;
 use snapshot::SnapFileContents;
 use walkdir::WalkDir;
+
+use error_chain::*;
+use clap::*;
 
 error_chain!{
     types {

@@ -5,6 +5,7 @@ authors = ["Adam Perry <adam.n.perry@gmail.com>"]
 description = "Procedural macro for generating snapshot tests."
 license = "MIT"
 repository = "https://github.com/anp/snapshot-rs"
+edition = "2018"
 
 [lib]
 proc-macro = true
