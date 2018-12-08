@@ -1,6 +1,6 @@
 {
   "second::test::another_simple_snapshot": {
-    "file": "tests/second.rs",
+    "file": "tests\\second.rs",
     "module_path": "second::test",
     "test_function": "another_simple_snapshot",
     "recorded_value": 2

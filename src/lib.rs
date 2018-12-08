@@ -1,17 +1,6 @@
-#[macro_use]
-extern crate pretty_assertions;
-extern crate serde;
-#[macro_use]
-extern crate serde_derive;
-extern crate serde_json;
-
-// we get an unused import when using macro use, but a
-// "this has no effect without macro_use" message otherwise
-#[allow(unused_imports)]
-#[macro_use]
-extern crate snapshot_proc_macro;
-
 pub use snapshot_proc_macro::*;
+
+use serde_derive::{Deserialize, Serialize};
 
 use serde::de::DeserializeOwned;
 use serde::Serialize;
