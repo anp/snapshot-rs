@@ -2,12 +2,14 @@ pub use snapshot_proc_macro::*;
 
 use serde_derive::{Deserialize, Serialize};
 
+use fs2::FileExt;
 use serde::de::DeserializeOwned;
 use serde::Serialize;
 use std::collections::BTreeMap;
 use std::fmt::Debug;
 use std::fs::{create_dir_all, File, OpenOptions};
 use std::io::prelude::*;
+use std::io::SeekFrom;
 use std::io::{BufReader, BufWriter};
 use std::path::{Path, PathBuf};
 
@@ -28,8 +30,12 @@ impl<S> Snapshot<S>
 where
     S: Snapable + Debug + DeserializeOwned + PartialEq + Serialize,
 {
-
-    pub fn new(file: String, module_path: String, test_function: String, recorded_value: S) -> Self {
+    pub fn new(
+        file: String,
+        module_path: String,
+        test_function: String,
+        recorded_value: S,
+    ) -> Self {
         Snapshot {
             file: file.replace("\\", "/"),
             module_path,
@@ -126,42 +132,48 @@ where
             ),
         }
 
-        let mut existing_snaps: SnapFileContents = match File::open(&absolute_path) {
-            Ok(f) => {
-                let mut rdr = BufReader::new(f);
-                let mut contents = String::new();
-                rdr.read_to_string(&mut contents)
-                    .expect("Unable to read snapshot file we just opened.");
 
-                match serde_json::from_str(&contents) {
-                    Ok(v) => v,
-                    Err(why) => panic!(
+        let mut f = match OpenOptions::new()
+            .create(true)
+            .read(true)
+            .write(true)
+            .open(&absolute_path)
+        {
+            Ok(f) => f,
+            Err(why) => panic!(
+                "Unable to open existing snapshot file {:?}: {:?}",
+                relative_path,
+                why.kind()
+            ),
+        };
+
+        f.lock_exclusive().unwrap();
+        println!("Start!");
+
+        let mut contents = String::new();
+
+        f.read_to_string(&mut contents).unwrap();
+
+        let mut existing_snaps: SnapFileContents = match serde_json::from_str(&contents) {
+            Ok(v) => v,
+            Err(why) => {
+                if contents.len() == 0 {
+                    SnapFileContents::new()
+                } else {
+                    panic!(
                         "Unable to parse potentially corrupt snapshot file {:?}: {:?}",
                         relative_path, why
-                    ),
+                    )
                 }
             }
-            Err(why) => match why.kind() {
-                ::std::io::ErrorKind::NotFound => SnapFileContents::new(),
-                _ => panic!(
-                    "Unable to open existing snapshot file {:?}: {:?}",
-                    relative_path,
-                    why.kind()
-                ),
-            },
         };
 
         // now we need to update the particular snapshot we care about
         existing_snaps.insert(self.module_key(), self.create_deserializable());
 
-        let writer = BufWriter::new(
-            OpenOptions::new()
-                .read(true)
-                .write(true)
-                .create(true)
-                .open(&absolute_path)
-                .expect("Unable to open/create file that we just opened/created!"),
-        );
+        f.seek(SeekFrom::Start(0)).unwrap();
+
+        let writer = BufWriter::new(f.duplicate().unwrap());
 
         match serde_json::to_writer_pretty(writer, &existing_snaps) {
             Ok(_) => (),
@@ -170,6 +182,10 @@ where
                 relative_path, why
             ),
         }
+
+        f.unlock().unwrap();
+
+        println!("Done!");
     }
 
     fn module_key(&self) -> String {
