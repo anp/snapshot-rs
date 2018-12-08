@@ -8,6 +8,16 @@ mod test {
         x
     }
 
+    #[cfg(test)]
+    mod sub_test {
+        use snapshot::snapshot;
+
+        #[snapshot]
+        fn simple_snapshot() -> String {
+            "Nested".to_owned()
+        }
+    }
+
     #[derive(Debug, Deserialize, PartialEq, Serialize)]
     struct Lol {
         a: f32,

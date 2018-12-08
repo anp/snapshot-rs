@@ -28,6 +28,16 @@ impl<S> Snapshot<S>
 where
     S: Snapable + Debug + DeserializeOwned + PartialEq + Serialize,
 {
+
+    pub fn new(file: String, module_path: String, test_function: String, recorded_value: S) -> Self {
+        Snapshot {
+            file: file.replace("\\", "/"),
+            module_path,
+            test_function,
+            recorded_value,
+        }
+    }
+
     pub fn check_snapshot(&self, manifest_dir: &str) {
         let SnapFileSpec {
             absolute_path,
