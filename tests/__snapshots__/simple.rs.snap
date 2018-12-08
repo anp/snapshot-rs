@@ -1,6 +1,6 @@
 {
   "simple::test::compound_snapshot": {
-    "file": "tests\\simple.rs",
+    "file": "tests/simple.rs",
     "module_path": "simple::test",
     "test_function": "compound_snapshot",
     "recorded_value": {
@@ -10,7 +10,7 @@
     }
   },
   "simple::test::simple_snapshot": {
-    "file": "tests\\simple.rs",
+    "file": "tests/simple.rs",
     "module_path": "simple::test",
     "test_function": "simple_snapshot",
     "recorded_value": 1
