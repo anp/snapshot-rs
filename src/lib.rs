@@ -129,7 +129,7 @@ where
             ),
         }
 
-        let mut f = match OpenOptions::new()
+        let mut file = match OpenOptions::new()
             .create(true)
             .read(true)
             .write(true)
@@ -143,19 +143,19 @@ where
             ),
         };
 
-        f.lock_exclusive().expect(OS_LOCK_FILE_FAIL);
+        file.lock_exclusive().expect(OS_LOCK_FILE_FAIL);
 
-        let mut existing_snaps: SnapFileContents = parse_snaps_from_file(&f, &relative_path);
+        let mut existing_snaps: SnapFileContents = parse_snaps_from_file(&file, &relative_path);
 
         // Now we need to update the particular snapshot we care about
         existing_snaps.insert(self.module_key(), self.create_deserializable());
 
-        write_snaps_to_file(&mut f, &existing_snaps, &relative_path);
+        write_snaps_to_file(&mut file, &existing_snaps, &relative_path);
 
         // We don't care if unlock fails because the OS will automatically unlock the file
         //  when it closes or the process terminates.  We will be closing the file handle
         //  on drop.
-        match f.unlock() {
+        match file.unlock() {
             _ => (),
         };
     }
