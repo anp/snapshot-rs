@@ -1,0 +1,8 @@
+{
+  "simple::submodule::tests::test_if_two": {
+    "file": "tests/submodule/mod.rs",
+    "module_path": "simple::submodule::tests",
+    "test_function": "test_if_two",
+    "recorded_value": 2
+  }
+}

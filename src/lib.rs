@@ -13,6 +13,9 @@ use std::io::SeekFrom;
 use std::io::{BufReader, BufWriter};
 use std::path::{Path, PathBuf};
 
+static OS_LOCK_FILE_FAIL: &str = "Your OS failed to lock the '.snap' file!";
+static OS_CLONE_FILE_FAIL: &str = "Your OS Failed to clone file handle";
+
 pub type SnapFileContents = BTreeMap<String, Snapshot<serde_json::Value>>;
 
 pub trait Snapable {}
@@ -60,13 +63,7 @@ where
             ),
         };
 
-        let rdr = BufReader::new(snap_file);
-        let mut module_snapshots: SnapFileContents = match serde_json::from_reader(rdr) {
-            Ok(ps) => ps,
-            Err(why) => {
-                panic!("Unable to parse previous snapshot:\n{:#?}", why);
-            }
-        };
+        let mut module_snapshots = parse_snaps_from_file(&snap_file, &relative_path);
 
         let snap_key = self.module_key();
         let previous_snapshot = match module_snapshots.remove(&snap_key) {
@@ -132,7 +129,6 @@ where
             ),
         }
 
-
         let mut f = match OpenOptions::new()
             .create(true)
             .read(true)
@@ -141,51 +137,27 @@ where
         {
             Ok(f) => f,
             Err(why) => panic!(
-                "Unable to open existing snapshot file {:?}: {:?}",
+                "Unable to open or create snapshot file {:?}: {:?}",
                 relative_path,
                 why.kind()
             ),
         };
 
-        f.lock_exclusive().unwrap();
-        println!("Start!");
+        f.lock_exclusive().expect(OS_LOCK_FILE_FAIL);
 
-        let mut contents = String::new();
+        let mut existing_snaps: SnapFileContents = parse_snaps_from_file(&f, &relative_path);
 
-        f.read_to_string(&mut contents).unwrap();
-
-        let mut existing_snaps: SnapFileContents = match serde_json::from_str(&contents) {
-            Ok(v) => v,
-            Err(why) => {
-                if contents.len() == 0 {
-                    SnapFileContents::new()
-                } else {
-                    panic!(
-                        "Unable to parse potentially corrupt snapshot file {:?}: {:?}",
-                        relative_path, why
-                    )
-                }
-            }
-        };
-
-        // now we need to update the particular snapshot we care about
+        // Now we need to update the particular snapshot we care about
         existing_snaps.insert(self.module_key(), self.create_deserializable());
 
-        f.seek(SeekFrom::Start(0)).unwrap();
+        write_snaps_to_file(&mut f, &existing_snaps, &relative_path);
 
-        let writer = BufWriter::new(f.duplicate().unwrap());
-
-        match serde_json::to_writer_pretty(writer, &existing_snaps) {
-            Ok(_) => (),
-            Err(why) => panic!(
-                "Unable to serialize or write snapshot result to {:?}: {:?}",
-                relative_path, why
-            ),
-        }
-
-        f.unlock().unwrap();
-
-        println!("Done!");
+        // We don't care if unlock fails because the OS will automatically unlock the file
+        //  when it closes or the process terminates.  We will be closing the file handle
+        //  on drop.
+        match f.unlock() {
+            _ => (),
+        };
     }
 
     fn module_key(&self) -> String {
@@ -236,6 +208,52 @@ where
             relative_path,
         }
     }
+}
+
+fn truncate_file(file: &mut File) {
+    let file_len = file.seek(SeekFrom::Current(0)).unwrap();
+    file.set_len(file_len).unwrap();
+}
+
+fn parse_snaps_from_file(file: &File, relative_path: &Path) -> SnapFileContents {
+    let mut contents = String::new();
+    let mut reader = BufReader::new(file.duplicate().expect(OS_CLONE_FILE_FAIL));
+    reader.read_to_string(&mut contents).unwrap();
+
+    match serde_json::from_str(&contents) {
+        Ok(v) => v,
+        Err(why) => {
+            if contents.len() == 0 {
+                eprintln!(
+                    "Snapshot file does not appear to exist: {:?}",
+                    relative_path
+                );
+                SnapFileContents::new()
+            } else {
+                eprintln!(
+                    "Unable to parse potentially corrupt snapshot file {:?}: {:?}",
+                    relative_path, why
+                );
+
+                SnapFileContents::new()
+            }
+        }
+    }
+}
+
+fn write_snaps_to_file(file: &mut File, snapshots: &SnapFileContents, relative_path: &Path) {
+    file.seek(SeekFrom::Start(0)).unwrap();
+
+    let writer = BufWriter::new(file.duplicate().expect(OS_CLONE_FILE_FAIL));
+    match serde_json::to_writer_pretty(writer, &snapshots) {
+        Err(why) => panic!(
+            "Unable to serialize or write snapshot result to {:?}: {:?}",
+            relative_path, why
+        ),
+        _ => {}
+    }
+
+    truncate_file(file);
 }
 
 struct SnapFileSpec {
