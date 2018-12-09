@@ -1,8 +1,8 @@
 {
-  "simple::submodule::tests::test_if_two": {
+  "simple::submodule::tests::test_if_multiline": {
     "file": "tests/submodule/mod.rs",
     "module_path": "simple::submodule::tests",
-    "test_function": "test_if_two",
-    "recorded_value": 2
+    "test_function": "test_if_multiline",
+    "recorded_value": "This is a test for \nmultiline stringz"
   }
 }

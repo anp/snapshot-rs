@@ -13,6 +13,8 @@ use std::io::SeekFrom;
 use std::io::{BufReader, BufWriter};
 use std::path::{Path, PathBuf};
 
+use pretty_assertions::assert_eq;
+
 static OS_LOCK_FILE_FAIL: &str = "Your OS failed to lock the '.snap' file!";
 static OS_CLONE_FILE_FAIL: &str = "Your OS Failed to clone file handle";
 
