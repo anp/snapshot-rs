@@ -1,5 +1,3 @@
-pub use snapshot_proc_macro::*;
-
 use serde_derive::{Deserialize, Serialize};
 
 use serde::de::DeserializeOwned;

@@ -1,5 +1,11 @@
 mod parse_tests;
 
+// Even though we can `use` the macros directly in 2018, these macros have other
+//  macro dependencies which are annoying to `use` and make the code a little less clear.
+#[macro_use] extern crate nom;
+#[macro_use] extern crate clap;
+#[macro_use] extern crate error_chain;
+
 use std::ffi::OsStr;
 use std::fs::File;
 use std::io::BufReader;
@@ -9,9 +15,6 @@ use dialoguer::{Checkboxes, Select};
 use duct::cmd;
 use snapshot::SnapFileContents;
 use walkdir::WalkDir;
-
-use error_chain::*;
-use clap::*;
 
 error_chain!{
     types {
