@@ -3,8 +3,10 @@
 // Still need this extern in 2018 (https://github.com/rust-lang/rust/pull/54116)
 extern crate proc_macro;
 
+#[macro_use]
+extern crate quote;
+
 use proc_macro::TokenStream;
-use quote::quote;
 use syn::Item;
 
 #[proc_macro_attribute]
