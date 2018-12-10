@@ -1,14 +1,17 @@
 {
   "simple::submodule::tests::test_if_multiline":
-      "tests",
-    "file": "tests/submodule/mod.rs",
-      "mod.rs"
-    ],
+  {
+    file:
+    [
+      tests
+      submodule
+      mod.rs
+    ]
     module_path: simple::submodule::tests
     test_function: test_if_multiline
     recorded_value:
       '''
-    "recorded_value": "This is a test for \nmultiline stringz"
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit,
       sed do eiusmod tempor incididunt ut labore et dolore magna
       aliqua. Ut enim ad minim veniam, quis nostrud exercitation
       ullamco laboris nisi ut aliquip ex ea commodo consequat.
