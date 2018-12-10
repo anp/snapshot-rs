@@ -1,7 +1,6 @@
 use std::str;
 
 use nom::{line_ending, digit, space};
-use nom::*;
 
 named!(
     rest_of_line<&str>,
