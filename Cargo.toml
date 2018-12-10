@@ -7,6 +7,7 @@ description = "\"Snapshot\" or golden master regression testing."
 repository = "https://github.com/anp/snapshot-rs"
 keywords = ["test", "testing", "regression", "snapshot", "golden-master"]
 categories = ["development-tools"]
+edition = "2018"
 
 [dependencies]
 pretty_assertions = "^0.2.0"

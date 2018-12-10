@@ -1,6 +1,3 @@
-extern crate serde;
-extern crate snapshot;
-
 mod test {
     use snapshot::snapshot;
 

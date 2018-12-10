@@ -1,17 +1,10 @@
-#[macro_use]
-extern crate clap;
-extern crate dialoguer;
-extern crate duct;
-#[macro_use]
-extern crate error_chain;
-#[macro_use]
-extern crate nom;
-extern crate serde;
-extern crate serde_json;
-extern crate snapshot;
-extern crate walkdir;
-
 mod parse_tests;
+
+// Even though we can `use` the macros directly in 2018, these macros have other
+//  macro dependencies which are annoying to `use` and make the code a little less clear.
+#[macro_use] extern crate nom;
+#[macro_use] extern crate clap;
+#[macro_use] extern crate error_chain;
 
 use std::ffi::OsStr;
 use std::fs::File;

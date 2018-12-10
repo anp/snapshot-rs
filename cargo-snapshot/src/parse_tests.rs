@@ -1,6 +1,5 @@
 use std::str;
 
-use nom;
 use nom::{line_ending, digit, space};
 
 named!(

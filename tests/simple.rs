@@ -1,9 +1,5 @@
-extern crate serde;
-#[macro_use]
-extern crate serde_derive;
-extern crate snapshot;
-
 mod test {
+    use serde_derive::{Deserialize, Serialize};
     use snapshot::snapshot;
 
     #[snapshot]

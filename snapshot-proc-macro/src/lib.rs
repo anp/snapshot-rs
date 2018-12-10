@@ -1,35 +1,32 @@
 #![recursion_limit = "128"]
 
+// Still need this extern in 2018 (https://github.com/rust-lang/rust/pull/54116)
 extern crate proc_macro;
+
 #[macro_use]
 extern crate quote;
-extern crate syn;
 
 use proc_macro::TokenStream;
-use syn::*;
+use syn::Item;
 
 #[proc_macro_attribute]
 pub fn snapshot(_: TokenStream, function: TokenStream) -> TokenStream {
     let mut inner_fn: Item = syn::parse(function.into()).unwrap();
 
     // swap the inner/outer function names in the Item
-    let (outer_fn_token, outer_fn_name, inner_fn_token) = {
-        let mut fn_item = match inner_fn {
-            Item::Fn(ref mut item) => item,
-            _ => panic!("#[snapshot] can only be applied to functions"),
-        };
-
-        // TODO check for generics, input variables, etc.
-
-        let outer_fn_token = fn_item.ident.clone();
-        let outer_fn_name = outer_fn_token.to_string();
-        let inner_fn_name = format!("__snapshot_inner_{}", outer_fn_token);
-        let inner_fn_token = syn::Ident::new(&inner_fn_name, fn_item.ident.span());
-
-        fn_item.ident = inner_fn_token.clone();
-
-        (outer_fn_token, outer_fn_name, inner_fn_token)
+    let mut fn_item = match inner_fn {
+        Item::Fn(ref mut item) => item,
+        _ => panic!("#[snapshot] can only be applied to functions"),
     };
+
+    // TODO check for generics, input variables, etc.
+
+    let outer_fn_token = fn_item.ident.clone();
+    let outer_fn_name = outer_fn_token.to_string();
+    let inner_fn_name = format!("__snapshot_inner_{}", outer_fn_token);
+    let inner_fn_token = syn::Ident::new(&inner_fn_name, fn_item.ident.span());
+
+    fn_item.ident = inner_fn_token.clone();
 
     let output = quote! {
         #[test]
