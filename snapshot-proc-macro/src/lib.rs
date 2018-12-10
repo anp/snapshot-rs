@@ -4,8 +4,8 @@
 extern crate proc_macro;
 
 use proc_macro::TokenStream;
-use syn::*;
 use quote::quote;
+use syn::Item;
 
 #[proc_macro_attribute]
 pub fn snapshot(_: TokenStream, function: TokenStream) -> TokenStream {
