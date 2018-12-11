@@ -10,9 +10,10 @@ categories = ["development-tools"]
 edition = "2018"
 
 [dependencies]
-pretty_assertions = "^0.5.1"
+pretty_assertions = "^0.2.0"
 serde = "^0.8"
 serde_derive = "^0.8"
+serde-hjson = "^0.8.2"
 snapshot-proc-macro = { path = "snapshot-proc-macro", version = "0.1" }
 fs2 = "^0.4.3"
-serde-hjson = "^0.8.2"
+
