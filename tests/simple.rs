@@ -1,3 +1,6 @@
+mod submodule;
+
+#[cfg(test)]
 mod test {
     use serde_derive::{Deserialize, Serialize};
     use snapshot::snapshot;

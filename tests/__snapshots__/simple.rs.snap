@@ -1,33 +1,40 @@
 {
-  "simple::test::compound_snapshot": {
-    "file": [
-      "tests",
-      "simple.rs"
-    ],
-    "module_path": "simple::test",
-    "test_function": "compound_snapshot",
-    "recorded_value": {
-      "a": 1.0,
-      "x": 12,
-      "z": "woowwowow"
+  "simple::test::compound_snapshot":
+  {
+    file:
+    [
+      tests
+      simple.rs
+    ]
+    module_path: simple::test
+    test_function: compound_snapshot
+    recorded_value:
+    {
+      a: 1
+      x: 12
+      z: woowwowow
     }
-  },
-  "simple::test::simple_snapshot": {
-    "file": [
-      "tests",
-      "simple.rs"
-    ],
-    "module_path": "simple::test",
-    "test_function": "simple_snapshot",
-    "recorded_value": 1
-  },
-  "simple::test::sub_test::simple_snapshot": {
-    "file": [
-      "tests",
-      "simple.rs"
-    ],
-    "module_path": "simple::test::sub_test",
-    "test_function": "simple_snapshot",
-    "recorded_value": "Nested"
+  }
+  "simple::test::simple_snapshot":
+  {
+    file:
+    [
+      tests
+      simple.rs
+    ]
+    module_path: simple::test
+    test_function: simple_snapshot
+    recorded_value: 1
+  }
+  "simple::test::sub_test::simple_snapshot":
+  {
+    file:
+    [
+      tests
+      simple.rs
+    ]
+    module_path: simple::test::sub_test
+    test_function: simple_snapshot
+    recorded_value: Nested
   }
 }
