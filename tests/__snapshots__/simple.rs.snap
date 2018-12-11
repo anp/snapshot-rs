@@ -28,6 +28,6 @@
     ],
     "module_path": "simple::test::sub_test",
     "test_function": "simple_snapshot",
-    "recorded_value": "Nestd"
+    "recorded_value": "Nested"
   }
 }
