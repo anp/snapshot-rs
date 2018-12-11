@@ -18,7 +18,7 @@ impl<T> Snapable for T where T: Debug + DeserializeOwned + Serialize {}
 
 #[derive(Debug, Deserialize, PartialEq, Serialize)]
 pub struct Snapshot<S: Snapable> {
-    pub file: String,
+    pub file: Vec<String>,
     pub module_path: String,
     pub test_function: String,
     pub recorded_value: S,
@@ -28,6 +28,23 @@ impl<S> Snapshot<S>
 where
     S: Snapable + Debug + DeserializeOwned + PartialEq + Serialize,
 {
+    pub fn new(
+        file: String,
+        module_path: String,
+        test_function: String,
+        recorded_value: S,
+    ) -> Self {
+        Snapshot {
+            file: Path::new(&file)
+                .components()
+                .map(|component| component.as_os_str().to_str().unwrap().to_owned())
+                .collect(),
+            module_path,
+            test_function,
+            recorded_value,
+        }
+    }
+
     pub fn check_snapshot(&self, manifest_dir: &str) {
         let SnapFileSpec {
             absolute_path,
@@ -182,17 +199,15 @@ where
     }
 
     fn path(&self, manifest_dir: &str) -> SnapFileSpec {
-        let file_path = &Path::new(&self.file);
-
-        let mut components = file_path.components();
+        let mut components = self.file.iter();
 
         // strip the filename
-        let mut filename = components.next_back().unwrap().as_os_str().to_owned();
-        filename.push(".snap");
+        let mut filename = components.next_back().unwrap().clone();
+        filename.push_str(".snap");
 
         let mut dir = PathBuf::new();
         for directory in components {
-            dir.push(directory.as_os_str());
+            dir.push(directory);
         }
 
         dir.push("__snapshots__");
